@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Replace configuration placeholder values 
+echo " ---> Replacing placeholder configuration values"
+sed -i "s|@{{DOCUMENT_ROOT}}|$DOCUMENT_ROOT|g" /etc/nginx/nginx.conf \
+  && sed -i "s|@{{HTACCESS_CONFIG}}|$HTACCESS_CONFIG|g" /etc/nginx/nginx.conf \
+  && sed -i "s/@{{DENIED_FILES}}/$DENIED_FILES/g" /etc/nginx/nginx.conf \
+  && sed -i "s|@{{UPLOAD_MAX_FILESIZE}}|$UPLOAD_MAX_FILESIZE|g" /etc/php7/php.ini \
+  && sed -i "s|@{{POST_MAX_SIZE}}|$POST_MAX_SIZE|g" /etc/php7/php.ini \
+  && sed -i "s|@{{MEMORY_LIMIT}}|$MEMORY_LIMIT|g" /etc/php7/php.ini \
+  && sed -i "s|@{{TIMEZONE}}|$TIMEZONE|g" /etc/php7/php.ini \
+  && sed -i "s|\$https if_not_empty|\$fastcgi_https|g" /etc/nginx/fastcgi_params
+
+# Run additional build commands
+echo " ---> Executing build commands"
+if eval $BUILD_COMMANDS
+then
+	echo " ---> Successfully executed build commands"
+else 
+	echo ERROR: Failed to execute build commands
+	exit 1 # terminate and inidcate error
+fi
+
+# Start supervisor 
+/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
